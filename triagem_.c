@@ -1,285 +1,293 @@
-#include <stdio.h>  
-#include <stdlib.h> 
+#include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
-#include <string.h> 
-#include <locale.h>  
+#include <string.h>
+#include <locale.h>
 
-// ------------------- Variáveis globais -------------------
-char quadroPaciente[100], urgencia[100], recomendacoes[100], conclusao[100], orientacoes[500];
-char nome[100], telefone[20];
-int idade;
-int opcao = 0, pontos = 0;
+// Mantidos globais essenciais
+char quadroPaciente[80], urgencia[80], recomendacoes[200], conclusao[40], orientacoes[500], nome[100], telefone[20];
+int idade, opcao = 0, pontos = 0;
 
-// ------------------- MÉTODOS -------------------
+// ---------- PROTÓTIPOS ----------
 void menu();
 void pause();
 void informacoesPaciente();
 void iniciarTriagem();
 void exibirPrognostico();
 void observacoes();
+int perguntasTriagem(char *msg);
+void formatarTelefone(char *tel);
+void calculoUrgencia(int pontos);
 
-int perguntasTriagem(char *mensagem);
-char* urgenciaPontuacao(int pontuacao);
-
-// ------------------- EXECUÇÃO -------------------
-int main() {
-
-    setlocale(LC_ALL,"Portuguese");
+// ---------- MAIN ----------
+int main()
+{
+    setlocale(LC_ALL, "Portuguese");
 
     printf("\n");
     printf("\n                                        Olá! Seja muito bem-vindo ao TRIATE(C)\n");
     printf("\n------------------------------------------------------------------------------------------------------------------------\n");
 
-    while(opcao != 5){
+    while (opcao != 5)
+    {
         menu();
+        system("cls");
     }
 
-    printf("\nTRIATE(C) Finalizado!\n");
-
+    printf("\nTRIATE(C) Finalizado.\n");
     return 0;
 }
 
-void pause(){
-    char enter=' ';
-    printf("\n");
-    printf("\tENTER para continuar ");
-    scanf("%c",&enter);
+// ---------- FUNÇÕES ----------
+void pause()
+{
+
+    printf("ENTER para continuar");
+    getchar();//conosme a entrada e limpa o buffer
 }
 
 
-// ------------------- MENU -------------------
-void menu(){
-	setlocale(LC_ALL,"Portuguese");
+void menu()
+{
     printf("\n\tM E N U\n");
-    printf("\n        [1]\tColetar informações do Paciente\n");
-    printf("        [2]\tIniciar Triagem\n");
-    printf("        [3]\tPrognóstico\n");
-    printf("        [4]\tObservações\n");
-    printf("        [5]\tEncerrar programa\n");
-    printf("\n\tOpção: ");
+    printf("[1] Coletar informações do Paciente\n");
+    printf("[2] Iniciar Triagem\n");
+    printf("[3] Visualizar prognóstico\n");
+    printf("[4] Visualizar Observações\n");
+    printf("[5] Encerrar\n");
+    printf("Opção: ");
+    scanf("%d", &opcao);
+    getchar();//limpa o buffer
 
-    scanf("%d",&opcao);
-    getchar();    // para consumir a quebra de linha
-
-    switch (opcao){
-        case 1:
-            informacoesPaciente();
-            pause(); 
-            break;
-        case 2:
-            iniciarTriagem();
-            pause();
-            break;
-        case 3:
-            exibirPrognostico();
-            pause();
-            break;
-        case 4:
-            observacoes();
-            pause();
-            break;
-        case 5:
-            break;
-        default:
-            printf("\n\tOpção inválida!\n");
-            pause();
-            break;
+    switch (opcao)
+    {
+    case 1:
+        informacoesPaciente();
+        pause();
+        break;
+    case 2:
+        iniciarTriagem();
+        pause();
+        break;
+    case 3:
+        exibirPrognostico();
+        pause();
+        break;
+    case 4:
+        observacoes();
+        pause();
+        break;
+    case 5:
+        break;
+    default:
+        printf("Opção inválida!\n");
+        pause();
     }
-
 }
 
-// ------------------- INFORMAÇÕES DO PACIENTE -------------------
-void informacoesPaciente(){
+void informacoesPaciente()
+{
+    system("cls");
 
-    char nomeTemp[100];
+    char nomeTmp[100];
     int i;
 
-    system("cls");
-    setlocale(LC_ALL,"Portuguese");
-    printf("\nNOME DO PACIENTE: ");
-    fgets(nomeTemp,sizeof(nomeTemp),stdin);
-    nomeTemp[strcspn(nomeTemp,"\n")] = '\0';
+    printf("\nNOME: ");
+    fgets(nomeTmp, sizeof(nomeTmp), stdin);
+    nomeTmp[strcspn(nomeTmp, "\n")] = '\0';
 
-    for(i=0;i<strlen(nomeTemp);i++){
-        nome[i] = toupper(nomeTemp[i]);
+    for(i=0;i<strlen(nomeTmp);i++){
+        nome[i] = toupper(nomeTmp[i]);
     }
 
-    printf("IDADE DO PACIENTE: ");
-    scanf("%d",&idade);
-    getchar(); // limpar buffer
 
-    printf("TELEFONE PARA CONTATO (DD) XXXX-XXXX: ");
-    fgets(telefone,sizeof(telefone),stdin);
-    telefone[strcspn(telefone,"\n")] = '\0';
+    printf("IDADE: ");
+    scanf("%d", &idade);
+    getchar();//limpa o buffer
+
+    printf("TELEFONE: ");
+    fgets(telefone, sizeof(telefone), stdin);
+    telefone[strcspn(telefone, "\n")] = '\0';
+
+    printf("\n==Informções Registradas==\n");
 }
 
-// ------------------- ÁRVORE DE DECISÃO -------------------
-void iniciarTriagem() {
+// ----------------- TRIAGEM -----------------
+void iniciarTriagem()
+{
     system("cls");
-    setlocale(LC_ALL,"Portuguese");
 
-    int febre       = perguntasTriagem("POSSUI FEBRE?");
-    int tosse       = perguntasTriagem("POSSUI TOSSE?");
-    int dorGarganta = perguntasTriagem("POSSUI DOR DE GARGANTA?");
-    int faltaAr     = perguntasTriagem("POSSUI FALTA DE AR?");
-    int dorCabeca   = perguntasTriagem("POSSUI DOR DE CABECA?");
-    int fraqueza    = perguntasTriagem("SENTE FRAQUEZA?");
-    int contato     = perguntasTriagem("TEVE CONTATO COM PESSOA DOENTE?");
+    //int pontos = 0;
+    int febre = perguntasTriagem("Febre?");
+    int tosse = perguntasTriagem("Tosse?");
+    int dorG = perguntasTriagem("Dor de garganta?");
+    int ar = perguntasTriagem("Falta de ar?");
+    int contato = perguntasTriagem("Contato com doente?");
+    int dorCab = perguntasTriagem("Dor de cabeça?");
+    int fraq = perguntasTriagem("Fraqueza?");
 
-    printf("\n=== RESULTADO DA TRIAGEM ===\n\n");
+    pontos += febre + tosse + dorG + ar + contato + dorCab + fraq;
 
-    // ------------------- ÁRVORE DE DECISÃO + PRIORIDADE -------------------
-    if (faltaAr) {
-        strcpy(quadroPaciente, "POSSIVEL CASO GRAVE");
-        strcpy(urgencia, "ALTISSIMA");
-        pontos = 100;
-        urgenciaPontuacao(pontos);
-        strcpy(recomendacoes, "ENCAMINHAR PARA ATENDIMENTO IMEDIATO");
+    // Critérios especiais
+    if (ar) pontos += 40;
+    if (febre && tosse) pontos += 30;
+    if (contato) pontos += 20;
+
+    // Idade influencia
+    if (idade <= 10 || idade >= 60) pontos += 15;
+
+    // ----- ÁRVORE REFINADA -----
+    if (pontos >= 90)
+    {
+        strcpy(quadroPaciente, "ALTO RISCO");
+        strcpy(recomendacoes, "ATENDIMENTO IMEDIATO");
         strcpy(conclusao, "CRITICO");
-
-    } else if (febre && tosse && fraqueza) {
-        strcpy(quadroPaciente, "SINAIS COMPATIVEIS COM INFECCAO RESPIRATORIA");
-        strcpy(urgencia, "ALTA");
-        pontos = 80;
-        urgenciaPontuacao(pontos);
-        strcpy(recomendacoes, "AVALIACAO PRESENCIAL");
+    }
+    else if (pontos >= 70)
+    {
+        strcpy(quadroPaciente, "RISCO MODERADO-ALTO");
+        strcpy(recomendacoes, "AVALIAÇÃO PRESENCIAL");
         strcpy(conclusao, "GRAVE");
-
-    } else if (febre && contato) {
-        strcpy(quadroPaciente, "SUSPEITA DE QUADRO VIRAL");
-        strcpy(urgencia, "MEDIA");
-        pontos = 60;
-        urgenciaPontuacao(pontos);
-        strcpy(recomendacoes, "ORIENTAR ISOLAMENTO E TESTAGEM");
+    }
+    else if (pontos >= 45)
+    {
+        strcpy(quadroPaciente, "RISCO MODERADO");
+        strcpy(recomendacoes, "ISOLAMENTO E MONITORAMENTO");
         strcpy(conclusao, "MODERADO");
-
-    } else if (dorGarganta && dorCabeca) {
-        
-        strcpy(quadroPaciente, "POSSIVEL GRIPE COMUM");
-        //strcpy(urgencia, "BAIXA");
-        pontos = 40;
-        urgenciaPontuacao(pontos);
-        strcpy(recomendacoes, "HIDRATACAO, REPOUSO E MONITORAMENTO");
-        strcpy(conclusao, "LEVE");
-
-    } else if (tosse || dorGarganta || dorCabeca) {
+    }
+    else if (pontos >= 20)
+    {
         strcpy(quadroPaciente, "QUADRO LEVE");
-        strcpy(urgencia, "BAIXA");
-        pontos = 20;
-        urgenciaPontuacao(pontos);
-        strcpy(recomendacoes, "CUIDADOS EM CASA");
+        strcpy(recomendacoes, "HIDRATAÇÃO E REPOUSO");
         strcpy(conclusao, "LEVE");
-
-    } else {
-        strcpy(quadroPaciente, "SEM INDICATIVO GRIPAL");
-        strcpy(urgencia, "SEM URGÊNCIA");
-        pontos = 0;
-        urgenciaPontuacao(pontos);
+    }
+    else
+    {
+        strcpy(quadroPaciente, "SEM INDICATIVOS");
         strcpy(recomendacoes, "VIDA NORMAL");
         strcpy(conclusao, "BOM");
     }
 
-    // printf("Quadro do paciente: %s\n", quadroPaciente);
-    // printf("Urgência: %s\n", urgencia);
-    // printf("Recomendações: %s\n", recomendacoes);
-    // printf("Conclusão: %s\n\n", conclusao);
-   
+    calculoUrgencia(pontos);
+
+    printf("==Tragem Finalizada==\n\n");
 }
 
-// ------------------- PERGUNTAS SIM/NÃO -------------------
-int perguntasTriagem(char *mensagem) {
-	setlocale(LC_ALL,"Portuguese");
-    char resposta = ' ';
+int perguntasTriagem(char *msg)
+{
+    char resposta;
+    int nivel;
 
-    while (1) {
-        printf("%s (S/N): ", mensagem);
-        scanf(" %c", &resposta);
-        getchar(); // limpar buffer
-        resposta = toupper(resposta);
-
-        if(resposta == 'S') return 1;
-        if(resposta == 'N') return 0;
-
-        printf("Entrada inválida! Digite S ou N.\n\n");
-    }
-}
-
-// ------------------- PROGNÓSTICO -------------------
-void exibirPrognostico() {
-	setlocale(LC_ALL,"Portuguese");
-    system("cls");
-    printf("\n\n===== PROGNÓSTICO DO PACIENTE =====\n");
-    printf("Condição do Paciente: %s\n", quadroPaciente);
-    printf("Nível de Urgência: %s\n", urgencia);
-    printf("Recomendações Iniciais: %s\n", recomendacoes);
-    printf("Conclusão: %s\n", conclusao);
-    printf("====================================\n\n");
-}
-
-// ------------------- DICAS -------------------
-void observacoes() {
-	setlocale(LC_ALL,"Portuguese");
-    system("cls");
-    if (strcmp(conclusao, "CRITICO") == 0) {  
-        strcpy(orientacoes,
-           "BUSCAR UTI IMEDIATAMENTE; EVITAR ESFORCOS; ACOMPANHAMENTO CONTINUO; "
-           "DOCUMENTACAO DISPONIVEL; PREPARAR TRANSFERENCIA SE NECESSARIO.");
-    } 
-    else if (strcmp(conclusao, "GRAVE") == 0) {  
-        strcpy(orientacoes,
-           "MONITORAR SINAIS; SEGUIR TRATAMENTO; HIDRATACAO; REPOUSO TOTAL; "
-           "NOTIFICAR AGRAVAMENTO AO MEDICO.");
-    } 
-    else if (strcmp(conclusao, "MODERADO") == 0) {  
-        strcpy(orientacoes,
-           "TRATAMENTO; REPOUSO MODERADO; HIDRATACAO; REAVALIAR EM 48-72H; "
-           "ISOLAMENTO SE NECESSARIO.");
-    } 
-    else if (strcmp(conclusao, "LEVE") == 0 || strcmp(conclusao, "BOM") == 0) {  
-        strcpy(orientacoes,
-           "HIDRATACAO; REPOUSO LEVE; ALIMENTACAO SAUDAVEL; MONITORAR MELHORA.");
-    } 
-    else {
-        strcpy(orientacoes, "SEM OBSERVACOES DISPONIVEIS.");
-    }
-
-
-    printf("\n\n===== ORIENTACOES =====\n");
-    printf("O Paciente %s\n",nome);
-    printf("Idade: %d\n",idade);
-    printf("Contato: %s\n",telefone);
-    printf("Oberservações: %s\n", orientacoes);
-    printf("===============================\n\n");
-}
-
-char* urgenciaPontuacao(int pontuacao){
-	setlocale(LC_ALL,"Portuguese");
-    
-    switch (pontuacao)
+    while (1)
     {
-    case 100:
-        strcpy(urgencia,"100 PONTOS - URGÊNCIA CRÍTICA");
-        break;
-    case 80:
-        strcpy(urgencia,"80 PONTOS - URGÊNCIA ALTA");
-        break;
-    case 60:
-        strcpy(urgencia,"60 PONTOS - URGÊNCIA MÉDIA");
-        break;
-    case 40:
-        strcpy(urgencia,"40 PONTOS - URGÊNCIA BAIXA");
-        break;
-    case 20:
-        strcpy(urgencia,"20 PONTOS - URGÊNCIA LEVE");
-        break;
-    case 0:
-        strcpy(urgencia,"0 PONTOS - SEM URGÊNCIA ");
-        break;
-    default:
-    
-        break;
+        printf("%s (S/N): ", msg);
+        scanf(" %c", &resposta);
+        getchar();//limpar buffer
+
+        if (toupper(resposta) == 'S')
+        {
+           do {
+                printf("1=Leve / 2=Moderado / 3=Forte): ");
+                scanf("%d", &nivel);
+                getchar();// limpar buffer
+
+                if(nivel < 1 || nivel > 3){
+                    printf(" intensidade inválida, tente novamente\n");
+                }
+            }
+            while (nivel < 1 || nivel > 3);
+
+            printf("\n\n");
+            return nivel * 10;
+        }
+        if (toupper(resposta) == 'N'){
+            return 0;
+        }
+
+        printf("Entrada inválida!\n");
     }
+
 }
 
+
+void exibirPrognostico()
+{
+    system("cls");
+
+    printf("\n=== PROGNÓSTICO ===\n");
+    printf("Paciente: %s\n", nome);
+    printf("Idade: %d\n", idade);
+    printf("\n===================\n");
+    printf("Quadro: %s\n", quadroPaciente);
+    printf("Urgência: %s\n", urgencia);
+    printf("Recomendações: %s\n", recomendacoes);
+    printf("Conclusão: %s\n\n", conclusao);
+}
+
+// ----------------- OBSERVAÇÕES -----------------
+void observacoes()
+{
+    system("cls");
+
+    if (strcmp(conclusao, "CRITICO")==0)
+    {
+        strcpy(orientacoes,
+                 "Paciente em estado CRÍTICO. AÇÕES IMEDIATAS:\n"
+                 "- Encaminhar para emergência/UTI imediatamente; não administrar medicamentos sem prescrição;\n"
+                 "- Evitar esforços, manter via aérea permeável; monitorizar sinais vitais continuamente;\n"
+                 "- Preparar documentação médica e histórico; organizar transporte assistido (ambulância) se possível;\n"
+                 "- Contatos: acionar serviço de emergência local;\n"
+                 "- Observações adicionais: considerar suporte ventilatório e disponibilidade de leitos de UTI.\n");
+    }
+    else if (strcmp(conclusao, "GRAVE")==0)
+    {
+        strcpy(orientacoes,
+                 "Paciente em estado GRAVE. AÇÕES RECOMENDADAS:\n"
+                 "- Avaliação presencial com prioridade nas próximas horas; realizar exames (oximetria, RX toráxico, hemograma).\n"
+                 "- Monitorar temperatura, frequência respiratória e oximetria a cada 2?4 horas; procurar urgência se houver queda de SpO2 < 94%% ou piora respiratória;\n"
+                 "- Isolamento e uso de máscara, hidratação e evitar anti-inflamatórios sem orientação;\n"
+                 "- Orientar transporte seguro e acompanhamento por profissional de saúde.\n");
+    }
+    else if (strcmp(conclusao, "MODERADO")==0)
+    {
+        strcpy(orientacoes,
+                 "Quadro MODERADO. Tratamento e monitoramento:\n"
+                 "- Isolamento domiciliar e observação: medir temperatura 2x/dia e oximetria quando disponível;\n"
+                 "- Sintomas a monitorar: febre persistente (>38,5°C >48h), dispneia, confusão, sonolência excessiva ? procurar atendimento se ocorrerem;\n"
+                 "- Manter hidratação, repouso, antipiréticos se necessário (paracetamol) e evitar automedicação;\n"
+                 "- Reavaliar em 48?72 horas ou antes se houver piora.\n");// snprintf() : serve para formatar
+    }
+    else if (strcmp(conclusao, "LEVE")==0 || strcmp(conclusao, "BOM")==0)
+    {
+        strcpy(orientacoes,
+                 "Quadro leve ou sem indicativos graves. Cuidados domiciliares:\n"
+                 "- Hidratar, repousar, usar antipirético se necessário; manter isolamento até melhora de 24?48h dos sintomas;\n"
+                 "- Orientações de retorno ao trabalho/escola: aguardar 24?48h sem febre e melhora sustentada; vacinação e prevenção respiratória recomendadas;\n"
+                 "- Procurar assistência se surgirem sinais de alarme (dispneia, confusão, queda acentuada da saturação).\n");
+    }
+    else
+    {
+        strcpy(orientacoes, "Sem observações específicas.");
+    }
+
+    // Informação resumida ao usuário
+    printf("\n==== OBSERVAÇÕES ====\n");
+    printf("Paciente: %s\n", nome);
+    printf("Idade: %d\n", idade);
+    printf("Contato: %s\n",telefone);
+    printf("Pontos de Urgência: %d\n\n",pontos);
+    printf("%s\n", orientacoes);
+    printf("================================\n\n");
+}
+
+// ----- URGÊNCIA POR PONTUAÇÃO -----
+void calculoUrgencia(int p)
+{
+    if (p >= 90) strcpy(urgencia, "CRITICA");
+    else if (p >= 70) strcpy(urgencia, "ALTA");
+    else if (p >= 45) strcpy(urgencia, "MEDIA");
+    else if (p >= 20) strcpy(urgencia, "BAIXA");
+    else strcpy(urgencia, "NULA");
+}
 
 
